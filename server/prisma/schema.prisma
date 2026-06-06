@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  user
+  admin
+}
+
+enum PrintType {
+  bw
+  color
+}
+
+enum PaperSize {
+  A4
+  F4
+  A3
+}
+
+enum PickupMethod {
+  pickup
+  delivery
+}
+
+enum OrderStatus {
+  pending
+  processing
+  ready
+  completed
+  cancelled
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  phone     String
+  password  String
+  role      Role     @default(user)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders Order[]
+
+  @@map("users")
+}
+
+model Order {
+  id              String       @id @default(uuid())
+  userId          String
+  fileName        String
+  fileUrl         String
+  pageCount       Int
+  printType       PrintType
+  paperSize       PaperSize
+  copies          Int          @default(1)
+  pickupMethod    PickupMethod
+  deliveryAddress String?
+  totalPrice      Int
+  status          OrderStatus  @default(pending)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  user       User              @relation(fields: [userId], references: [id])
+  statusLogs OrderStatusLog[]
+
+  @@map("orders")
+}
+
+model OrderStatusLog {
+  id         String   @id @default(uuid())
+  orderId    String
+  fromStatus String
+  toStatus   String
+  changedBy  String
+  createdAt  DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  @@map("order_status_logs")
+}
