@@ -74,8 +74,8 @@ const updateOrderStatus = async (req, res, next) => {
     // SSE Realtime Update to User
     sseService.notifyUser(order.userId, { type: 'ORDER_STATUS_UPDATE', order });
 
-    // Send WhatsApp Notification if completed or ready
-    if (status === 'completed' || status === 'ready') {
+    // Send WhatsApp Notification if processing, completed or ready
+    if (status === 'processing' || status === 'completed' || status === 'ready') {
       const userPhone = order.user?.phone;
       if (userPhone) {
         whatsappService.sendWhatsAppMessage(

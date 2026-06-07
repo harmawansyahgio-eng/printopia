@@ -7,6 +7,12 @@ const sendWhatsAppMessage = async (target, message) => {
     return;
   }
 
+  // Format phone number: remove non-digits, convert leading 0 to 62
+  let formattedTarget = target.replace(/\D/g, '');
+  if (formattedTarget.startsWith('0')) {
+    formattedTarget = '62' + formattedTarget.substring(1);
+  }
+
   try {
     const response = await fetch('https://api.fonnte.com/send', {
       method: 'POST',
@@ -14,7 +20,7 @@ const sendWhatsAppMessage = async (target, message) => {
         'Authorization': env.fonnteApiKey,
       },
       body: new URLSearchParams({
-        target: target,
+        target: formattedTarget,
         message: message,
       })
     });
