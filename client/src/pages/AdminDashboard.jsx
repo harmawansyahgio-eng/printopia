@@ -6,6 +6,7 @@ import api from '../api/axios';
 export default function AdminDashboard() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filterType, setFilterType] = useState('aktif');
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -66,8 +67,26 @@ export default function AdminDashboard() {
     );
   };
 
+  const isTodayWIB = (dateString) => {
+    const now = new Date();
+    const options = { timeZone: 'Asia/Jakarta', year: 'numeric', month: 'numeric', day: 'numeric' };
+    const todayWIB = new Intl.DateTimeFormat('en-US', options).format(now);
+    const orderDateWIB = new Intl.DateTimeFormat('en-US', options).format(new Date(dateString));
+    return todayWIB === orderDateWIB;
+  };
+
   const pendingCount = orders.filter(o => o.status === 'pending').length;
   const processingCount = orders.filter(o => o.status === 'processing').length;
+
+  const filteredOrders = orders.filter(o => {
+    if (filterType === 'aktif') {
+      return ['pending', 'processing', 'ready'].includes(o.status);
+    } else {
+      return ['completed', 'cancelled'].includes(o.status);
+    }
+  });
+
+  const todayOrdersCount = orders.filter(o => isTodayWIB(o.createdAt)).length;
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center h-full text-slate-400">
@@ -90,8 +109,8 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-start justify-between">
           <div>
-            <p className="text-sm font-medium text-slate-500 mb-2">Total Pesanan</p>
-            <h3 className="text-3xl font-bold text-slate-900">{orders.length}</h3>
+            <p className="text-sm font-medium text-slate-500 mb-2">Total Pesanan (Hari Ini)</p>
+            <h3 className="text-3xl font-bold text-slate-900">{todayOrdersCount}</h3>
           </div>
           <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">
             <BarChart3 className="w-5 h-5" />
@@ -123,11 +142,21 @@ export default function AdminDashboard() {
 
       {/* Table Section */}
       <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col">
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white">
+        <div className="px-4 sm:px-6 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white">
           <h2 className="text-base font-bold text-slate-900">Antrean Pesanan</h2>
-          <div className="flex bg-slate-50 border border-slate-200 rounded-lg p-1">
-            <button className="px-4 py-1.5 text-sm font-medium bg-blue-600 text-white rounded shadow-sm">Aktif</button>
-            <button className="px-4 py-1.5 text-sm font-medium text-slate-600 hover:text-slate-900">Selesai</button>
+          <div className="flex bg-slate-50 border border-slate-200 rounded-lg p-1 self-start sm:self-auto">
+            <button 
+              onClick={() => setFilterType('aktif')}
+              className={`px-4 py-1.5 text-sm font-medium rounded shadow-sm transition-colors ${filterType === 'aktif' ? 'bg-blue-600 text-white' : 'text-slate-600 hover:text-slate-900 bg-transparent shadow-none'}`}
+            >
+              Aktif
+            </button>
+            <button 
+              onClick={() => setFilterType('selesai')}
+              className={`px-4 py-1.5 text-sm font-medium rounded shadow-sm transition-colors ${filterType === 'selesai' ? 'bg-blue-600 text-white' : 'text-slate-600 hover:text-slate-900 bg-transparent shadow-none'}`}
+            >
+              Selesai
+            </button>
           </div>
         </div>
         
@@ -144,7 +173,13 @@ export default function AdminDashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {orders.map(order => (
+              {filteredOrders.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="px-6 py-12 text-center text-slate-500">
+                    Tidak ada pesanan {filterType}.
+                  </td>
+                </tr>
+              ) : filteredOrders.map(order => (
                 <tr key={order.id} className="hover:bg-slate-50/50 transition-colors">
                   <td className="px-6 py-4">
                     <span className="font-medium text-blue-600 text-xs">#PRT-{order.id.slice(0, 8)}</span>
@@ -178,14 +213,14 @@ export default function AdminDashboard() {
           </table>
         </div>
 
-        <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between bg-white text-sm text-slate-500">
-          <div>Menampilkan 1-{Math.min(orders.length, 10)} dari {orders.length} pesanan</div>
-          <div className="flex gap-1">
-            <button className="w-8 h-8 flex items-center justify-center border border-slate-200 rounded-md bg-white hover:bg-slate-50 text-slate-400">&lt;</button>
-            <button className="w-8 h-8 flex items-center justify-center border border-blue-600 rounded-md bg-blue-600 text-white font-medium">1</button>
-            <button className="w-8 h-8 flex items-center justify-center border border-slate-200 rounded-md bg-white hover:bg-slate-50 font-medium text-slate-700">2</button>
-            <button className="w-8 h-8 flex items-center justify-center border border-slate-200 rounded-md bg-white hover:bg-slate-50 font-medium text-slate-700">3</button>
-            <button className="w-8 h-8 flex items-center justify-center border border-slate-200 rounded-md bg-white hover:bg-slate-50 text-slate-600">&gt;</button>
+        <div className="px-4 sm:px-6 py-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white text-sm text-slate-500">
+          <div>Menampilkan 1-{Math.min(filteredOrders.length, 10)} dari {filteredOrders.length} pesanan</div>
+          <div className="flex gap-1 overflow-x-auto max-w-full pb-1 sm:pb-0">
+            <button className="w-8 h-8 flex-shrink-0 flex items-center justify-center border border-slate-200 rounded-md bg-white hover:bg-slate-50 text-slate-400">&lt;</button>
+            <button className="w-8 h-8 flex-shrink-0 flex items-center justify-center border border-blue-600 rounded-md bg-blue-600 text-white font-medium">1</button>
+            <button className="w-8 h-8 flex-shrink-0 flex items-center justify-center border border-slate-200 rounded-md bg-white hover:bg-slate-50 font-medium text-slate-700">2</button>
+            <button className="w-8 h-8 flex-shrink-0 flex items-center justify-center border border-slate-200 rounded-md bg-white hover:bg-slate-50 font-medium text-slate-700">3</button>
+            <button className="w-8 h-8 flex-shrink-0 flex items-center justify-center border border-slate-200 rounded-md bg-white hover:bg-slate-50 text-slate-600">&gt;</button>
           </div>
         </div>
       </div>

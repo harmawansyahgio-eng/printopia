@@ -63,14 +63,14 @@ export default function Dashboard() {
   return (
     <div className="space-y-8 py-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-[28px] font-bold tracking-tight text-slate-900">Halo, {user?.name || 'Mahasiswa'}!</h1>
           <p className="text-[15px] text-slate-500 mt-1">Siap untuk mencetak dokumen tugas kuliahmu hari ini?</p>
         </div>
         <Link 
           to="/dashboard/new" 
-          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-sm flex items-center gap-2"
+          className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-all shadow-sm flex items-center justify-center gap-2"
         >
           <PlusCircle className="w-5 h-5" />
           <span>Buat Order Baru</span>
@@ -113,7 +113,6 @@ export default function Dashboard() {
               <tr className="border-b border-slate-100 text-slate-500 text-[11px] font-semibold uppercase tracking-wider">
                 <th className="px-6 py-4">ORDER ID</th>
                 <th className="px-6 py-4">FILE NAME</th>
-                <th className="px-6 py-4">TYPE</th>
                 <th className="px-6 py-4">STATUS</th>
                 <th className="px-6 py-4">TOTAL PRICE</th>
                 <th className="px-6 py-4">DATE</th>
@@ -123,7 +122,7 @@ export default function Dashboard() {
             <tbody className="divide-y divide-slate-100">
               {orders.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="px-6 py-12 text-center text-slate-500">
+                  <td colSpan="6" className="px-6 py-12 text-center text-slate-500">
                     Belum ada pesanan. Yuk buat order baru!
                   </td>
                 </tr>
@@ -135,9 +134,6 @@ export default function Dashboard() {
                   <td className="px-6 py-4">
                     <div className="font-semibold text-slate-900">{order.fileName}</div>
                     <div className="text-xs text-slate-500 mt-0.5">{order.pageCount} Pages</div>
-                  </td>
-                  <td className="px-6 py-4 text-slate-600 text-sm">
-                    {order.printType === 'color' ? 'Color' : 'B/W'} / {order.paperSize} / 80gsm
                   </td>
                   <td className="px-6 py-4">
                     <StatusBadge status={order.status} />
