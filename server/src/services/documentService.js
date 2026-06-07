@@ -9,9 +9,13 @@ const processAndUploadPdf = async (file) => {
     throw error;
   }
 
-  // 1. Parse PDF untuk mendapatkan jumlah halaman
+  // Parse PDF for get count page
   let pageCount = 0;
-  console.log('File metadata:', { originalname: file.originalname, size: file.size, mimetype: file.mimetype });
+  console.log('File metadata:', {
+    originalname: file.originalname,
+    size: file.size,
+    mimetype: file.mimetype,
+  });
   try {
     const data = await pdfParse(file.buffer);
     pageCount = data.numpages;
@@ -22,14 +26,14 @@ const processAndUploadPdf = async (file) => {
     throw error;
   }
 
-  // 2. Upload ke Supabase Storage
+  // 0Upload to Supabase Storage
   const fileName = `${Date.now()}_${file.originalname.replace(/\s+/g, '_')}`;
-  
+
   const { data: uploadData, error: uploadError } = await supabase.storage
     .from(env.supabaseBucket || 'documents')
     .upload(`uploads/${fileName}`, file.buffer, {
       contentType: 'application/pdf',
-      upsert: false
+      upsert: false,
     });
 
   if (uploadError) {
@@ -39,7 +43,7 @@ const processAndUploadPdf = async (file) => {
     throw error;
   }
 
-  // 3. Dapatkan Public URL
+  // get public url
   const { data: publicUrlData } = supabase.storage
     .from(env.supabaseBucket || 'documents')
     .getPublicUrl(`uploads/${fileName}`);
@@ -49,10 +53,10 @@ const processAndUploadPdf = async (file) => {
     storedFileName: fileName,
     fileUrl: publicUrlData.publicUrl,
     pageCount: pageCount,
-    size: file.size
+    size: file.size,
   };
 };
 
 module.exports = {
-  processAndUploadPdf
+  processAndUploadPdf,
 };

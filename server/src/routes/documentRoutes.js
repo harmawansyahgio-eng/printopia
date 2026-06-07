@@ -4,7 +4,7 @@ const documentController = require('../controllers/documentController');
 const authMiddleware = require('../middlewares/authMiddleware');
 const upload = require('../middlewares/uploadMiddleware');
 
-// Route untuk upload PDF, perlu authentication
+// Route for upload PDF, need authentication
 router.post('/upload', authMiddleware, upload.single('file'), documentController.uploadPdf);
 
 module.exports = router;

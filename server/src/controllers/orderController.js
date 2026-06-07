@@ -17,7 +17,7 @@ const createOrder = async (req, res, next) => {
     if (userPhone) {
       whatsappService.sendWhatsAppMessage(
         userPhone, 
-        `Halo! Order Printopia Anda dengan ID ${order.id} berhasil dibuat dan sedang menunggu konfirmasi admin. Total: Rp. ${order.totalPrice}`
+        `Halo! Order Printopia Anda dengan ID ${order.id} Sekarang dalam status pending dan sedang menunggu untuk di process.`
       );
     }
 
@@ -78,10 +78,22 @@ const updateOrderStatus = async (req, res, next) => {
     if (status === 'processing' || status === 'completed' || status === 'ready') {
       const userPhone = order.user?.phone;
       if (userPhone) {
-        whatsappService.sendWhatsAppMessage(
-          userPhone, 
-          `Halo! Order Printopia Anda dengan ID ${order.id} sekarang berstatus: ${status}.`
-        );
+        let waMessage = '';
+        if (status === 'processing') {
+          waMessage = `Halo! Order Printopia Anda dengan ID ${order.id} Sekarang sedang di prosess.`;
+        } else if (status === 'ready') {
+          if (order.pickupMethod === 'pickup') {
+            waMessage = `Halo! Order Printopia Anda dengan ID ${order.id} Telah selesai dan siap di ambil dengan biaya Rp. ${order.totalPrice}`;
+          } else {
+            waMessage = `Halo! Order Printopia Anda dengan ID ${order.id} Telah selesai dan siap untuk di antar dengan biaya Rp. ${order.totalPrice}, mohon untuk berada di alamat.`;
+          }
+        } else if (status === 'completed') {
+          waMessage = `Halo! Order Printopia Anda dengan ID ${order.id} telah diselesaikan. Terima kasih telah menggunakan Printopia!`;
+        }
+
+        if (waMessage) {
+          whatsappService.sendWhatsAppMessage(userPhone, waMessage);
+        }
       }
     }
 
